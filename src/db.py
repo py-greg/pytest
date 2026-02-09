@@ -21,10 +21,10 @@ def my_profile(user_id: int) -> Profile:
     cursor.execute("SELECT * FROM users WHERE id = ?", (user_id,))
     return Profile(**cursor.fetchone())
 
-def get_chats(user: Profile) -> List[Chat]:
+def get_chats(user_id: int) -> List[Chat]:
     cursor = conn.cursor()
     cursor.execute("SELECT chats.id, chats.name FROM users INNER JOIN u2c ON u2c.uid = (?) INNER JOIN chats ON chats.id = u2c.cid",
-        [user.id]
+        [user_id]
     )
     chats = cursor.fetchall()
     return [Chat(**chat) for chat in chats]
