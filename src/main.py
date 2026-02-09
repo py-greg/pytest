@@ -5,8 +5,8 @@ from src.api import app as router
 
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
-app.include_router(profile, prefix="/profile")
-app.include_router(chats, prefix="/chats")
+app.include_router(prof, prefix="/profile")
+app.include_router(chts, prefix="/chats")
 
 if __name__ == '__main__':
     import uvicorn

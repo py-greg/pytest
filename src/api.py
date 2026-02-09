@@ -1,13 +1,18 @@
 from fastapi.routing import APIRouter
 
-app = APIRouter()
+chts = APIRouter(chts)
+prof = APIRouter(prof)
 from src.models import Profile, Message, Chat
 from src.db import get_users, my_profile
 
-@app.get("/users")
-def get_users_route():
+@prof.get("/users")
+async def get_users():
     return get_users()
 
-@app.get("/profile")
-def my_profile_route(user_id: int):
+@prof.get("/profile")
+async def my_profile(user_id: int):
     return my_profile(user_id)
+
+@chts.get("/my_chats")
+async def my_chats(user_id: int):
+    return get_chats(user_id)
