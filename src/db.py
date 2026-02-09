@@ -16,9 +16,9 @@ def get_users() -> List[Profile]:
     cursor.execute("SELECT * FROM users")
     return [Profile(**row) for row in cursor]
 
-def my_profile() -> List[Profile]:
+def my_profile(user_id: int) -> Profile:
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM users WHERE id = ?", (user_id,))
     return Profile(**cursor.fetchone())
 
-def get_chats() -> 
+#def get_chats() -> 
