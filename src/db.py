@@ -28,3 +28,27 @@ def get_chats(user_id: int) -> List[Chat]:
     )
     chats = cursor.fetchall()
     return [Chat(**chat) for chat in chats]
+
+def register_user(user: Profile) -> bool:
+    cursor = conn.cursor()
+    cursor.execute("INSERT INTO users (name, age, email, phone, country) VALUES (?, ?, ?, ?, ?)",
+        (user.name, user.age, user.email, user.phone, user.country)
+    )
+    conn.commit()
+    return True
+
+def create_chat(chat: Chat) -> bool:
+    cursor = conn.cursor()
+    cursor.execute("INSERT INTO chats (name) VALUES (?)",
+        (chat.name)
+    )
+    conn.commit()
+    return True
+
+def get_messages(chat_id: int) -> List[Message]:
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM messages WHERE chat_id = ?",
+        (chat_id,)
+    )
+    messages = cursor.fetchall()
+    return [Message(**message) for message in messages]
