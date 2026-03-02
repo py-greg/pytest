@@ -16,3 +16,17 @@ async def my_profile(user_id: int):
 @chts.get("/my_chats")
 async def my_chats(user_id: int):
     return get_chats(user_id)
+
+@prof.post("/register")
+async def register(user: Profile):
+    register_user(user)
+    return "User registered successfully!"
+
+@chts.post("/create_chat")
+async def create_chat(chat: Chat):
+    create_chat(chat)
+    return "Chat created successfully!"
+
+@chts.get("/my_messages_from_chat/{chat_id}")
+async def my_messages_from_chat(chat_id: int):
+    return get_messages(chat_id)
