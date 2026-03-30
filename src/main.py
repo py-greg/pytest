@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from starlette.staticfiles import StaticFiles
 import socketio
 
-from src.api import app as router
+from src.api import chts, prof
 
 sio = socketio.AsyncServer(async_mode="asgi")
 app = FastAPI()

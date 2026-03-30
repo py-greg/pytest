@@ -1,7 +1,7 @@
 from fastapi.routing import APIRouter
 
-chts = APIRouter(chts)
-prof = APIRouter(prof)
+chts = APIRouter()
+prof = APIRouter()
 from src.models import Profile, Message, Chat
 from src.db import get_users, my_profile
 

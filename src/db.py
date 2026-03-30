@@ -1,14 +1,13 @@
 from typing import List
-import mariadb
-from src.models import Message, Profile
+import pymysql
+from src.models import Message, Profile, Chat
 
-conn = mariadb.connect(
+conn = pymysql.connect(
     host="84.38.180.130",
     port=3306,
     user="greg",
     password="Wasthatthebiteof87",
-    database="greg_db",
-    autocommit=False
+    database="greg_db"
 )
 
 def get_users() -> List[Profile]:
