@@ -10,6 +10,7 @@ conn = pymysql.connect(
     database="greg_db"
 )
 
+#all functions are self-explanatory
 def get_users() -> List[Profile]:
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM users")
