@@ -34,7 +34,7 @@ async def handle_chat_message(sid, data):
     # Отправляем ответ конкретному клиенту
     await sio.emit("chat_response", {"data": "Сообщение получено"}, room=sid)
     # Если нужно отправить сообщение всем клиентам:
-    # await sio.emit("chat_response", {"data": "Новое сообщение"}, broadcast=True)
+    #await sio.emit("chat_response", {"data": "Новое сообщение"}, broadcast=True)
 
 if __name__ == '__main__':
     import uvicorn
