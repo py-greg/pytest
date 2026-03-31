@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 
-
+#profile model
 class Profile(BaseModel):
     id: int = -1
     name: str
@@ -9,6 +9,7 @@ class Profile(BaseModel):
     phone: str
     country: str
 
+#message model
 class Message(BaseModel):
     id: int = -1
     sender: str
@@ -17,6 +18,7 @@ class Message(BaseModel):
     receiver_id: int
     message: str
 
+#chat model
 class Chat(BaseModel):
     id: int = -1
     name: str
