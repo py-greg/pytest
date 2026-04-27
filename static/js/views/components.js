@@ -11,7 +11,9 @@ function escapeHtml(str) {
 export function createMessageElement(message, isOwn) {
     const div = document.createElement('div');
     div.className = `message ${isOwn ? 'own' : ''}`;
+    const senderLabel = isOwn ? 'You' : (message.sender_name || `User ${message.sender_id ?? ''}`);
     div.innerHTML = `
+        <small><strong>${escapeHtml(senderLabel)}</strong></small>
         <div>${escapeHtml(message.text)}</div>
         <small>${message.created_at || ''}</small>
     `;

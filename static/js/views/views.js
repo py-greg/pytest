@@ -1,6 +1,6 @@
 import { registerProfile, getUsers, getProfile, getMyChats, createChat, getMessages } from '../api.js';
 import { state } from '../state.js';
-import { getSocket } from '../socket.js';
+import { getSocket, ensureSocketConnected } from '../socket.js';
 import { createMessageElement, createChatItemElement, createUserItemElement } from './components.js';
 
 // ----------------------------------------------------------------------
@@ -78,11 +78,18 @@ export async function renderProfile(container) {
 // ----------------------------------------------------------------------
 export async function renderUsersList(container) {
     let users = [];
-    try {
-        users = await getUsers();
-    } catch (err) {
-        container.innerHTML = `<p>Failed to load users: ${err.message}</p>`;
-        return;
+    const usersCacheFresh = typeof state.isUsersCacheFresh === 'function' ? state.isUsersCacheFresh() : false;
+    const usersCache = typeof state.getUsersCache === 'function' ? state.getUsersCache() : [];
+    if (usersCacheFresh && usersCache.length > 0) {
+        users = usersCache;
+    } else {
+        try {
+            users = await getUsers();
+            state.setUsersCache(users);
+        } catch (err) {
+            container.innerHTML = `<p>Failed to load users: ${err.message}</p>`;
+            return;
+        }
     }
     
     container.innerHTML = `
@@ -118,13 +125,15 @@ export async function renderUsersList(container) {
 // ----------------------------------------------------------------------
 export async function renderChatsList(container) {
     const userId = state.getCurrentUserId();
-    let chats = [];
-    try {
-        chats = await getMyChats(userId);
-        state.setChats(chats);
-    } catch (err) {
-        container.innerHTML = `<p>Error: ${err.message}</p>`;
-        return;
+    const chatsCacheFresh = typeof state.isChatsCacheFresh === 'function' ? state.isChatsCacheFresh() : false;
+    if (!chatsCacheFresh || state.getChats().length === 0) {
+        try {
+            const chats = await getMyChats(userId);
+            state.setChats(chats);
+        } catch (err) {
+            container.innerHTML = `<p>Error: ${err.message}</p>`;
+            return;
+        }
     }
     
     container.innerHTML = `
@@ -160,7 +169,7 @@ async function showCreateChatModal() {
     const name = prompt('Enter chat name:');
     if (!name) return;
     try {
-        const newChat = await createChat({ name });
+        const newChat = await createChat({ name, user_ids: [] });
         const currentChats = state.getChats();
         state.setChats([...currentChats, newChat]);
         renderChatsListContent();
@@ -186,12 +195,14 @@ export async function renderChatDetail(container, chatId) {
     currentChatId = parseInt(chatId);
     socket = getSocket();
     
-    let messages = [];
-    try {
-        messages = await getMessages(currentChatId);
-        state.setMessages(currentChatId, messages);
-    } catch (err) {
-        console.warn('Could not load messages', err);
+    const hasMessages = typeof state.hasMessages === 'function' ? state.hasMessages(currentChatId) : state.getMessages(currentChatId).length > 0;
+    if (!hasMessages) {
+        try {
+            const messages = await getMessages(currentChatId, { limit: 100 });
+            state.setMessages(currentChatId, messages);
+        } catch (err) {
+            console.warn('Could not load messages', err);
+        }
     }
     
     container.innerHTML = `
@@ -206,22 +217,24 @@ export async function renderChatDetail(container, chatId) {
     renderMessages(currentChatId);
     
     const form = document.getElementById('message-form');
-    form.addEventListener('submit', (e) => {
+    form.addEventListener('submit', async (e) => {
         e.preventDefault();
         const input = document.getElementById('msg-text');
         const text = input.value.trim();
         if (!text) return;
-        
-        if (socket && socket.connected) {
-            socket.emit('send_message', {
-                chat_id: currentChatId,
-                text: text,
-                sender_id: state.getCurrentUserId()
-            });
-            input.value = '';
-        } else {
+
+        const connectedSocket = await ensureSocketConnected();
+        if (!connectedSocket) {
             alert('Socket not connected. Cannot send message.');
+            return;
         }
+
+        connectedSocket.emit('chat_message', {
+            chat_id: currentChatId,
+            text: text,
+            sender_id: state.getCurrentUserId()
+        });
+        input.value = '';
     });
     
     document.getElementById('back').onclick = () => location.hash = 'chats';

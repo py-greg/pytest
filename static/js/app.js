@@ -8,8 +8,14 @@ import {
     renderChatDetail
 } from './views/views.js';
 
+let currentRouteRenderToken = 0;
+let lastHash = null;
+
 async function router() {
     const hash = location.hash.slice(1) || '/';
+    if (hash === lastHash) return;
+    lastHash = hash;
+    const renderToken = ++currentRouteRenderToken;
     const appDiv = document.getElementById('app');
     
     if (hash === 'register') {
@@ -23,6 +29,7 @@ async function router() {
         if (!state.getCurrentUserId()) location.hash = 'register';
         else {
             await renderChatsList(appDiv);
+            if (renderToken !== currentRouteRenderToken) return;
             initSocket();
         }
     } else if (hash.startsWith('chat/')) {
@@ -30,6 +37,7 @@ async function router() {
         if (!state.getCurrentUserId()) location.hash = 'register';
         else {
             await renderChatDetail(appDiv, chatId);
+            if (renderToken !== currentRouteRenderToken) return;
             initSocket();
         }
     } else {

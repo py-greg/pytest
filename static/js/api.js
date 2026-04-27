@@ -1,4 +1,4 @@
-const API_BASE = 'http://localhost:4444';
+const API_BASE = window.location.origin;
 
 async function request(url, options = {}) {
     const response = await fetch(`${API_BASE}${url}`, options);
@@ -37,6 +37,10 @@ export function createChat(chatData) {
     });
 }
 
-export function getMessages(chatId) {
-    return request(`/chats/my_messages_from_chat/${chatId}`);
+export function getMessages(chatId, options = {}) {
+    const params = new URLSearchParams();
+    if (options.limit) params.set('limit', String(options.limit));
+    if (options.beforeId) params.set('before_id', String(options.beforeId));
+    const suffix = params.toString() ? `?${params.toString()}` : '';
+    return request(`/chats/my_messages_from_chat/${chatId}${suffix}`);
 }
