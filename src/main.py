@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 from starlette.staticfiles import StaticFiles
 import socketio
 import asyncio
@@ -14,6 +15,18 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 app.include_router(prof, prefix="/profile")
 app.include_router(chts, prefix="/chats")
 socket_app = socketio.ASGIApp(sio, other_asgi_app=app)
+
+
+@app.get("/")
+async def serve_index():
+    return FileResponse("static/index.html")
+
+
+@app.get("/index.html")
+async def serve_index_file():
+    return FileResponse("static/index.html")
+
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],        # Список разрешённых источников
