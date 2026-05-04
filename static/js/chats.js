@@ -1,4 +1,8 @@
 const selectedUserBox = document.getElementById("selected-user");
+const toggleChatListBtn = document.getElementById("toggle-chat-list-btn");
+const chatListWrap = document.getElementById("chat-list-wrap");
+const toggleCreateChatBtn = document.getElementById("toggle-create-chat-btn");
+const createChatWrap = document.getElementById("create-chat-wrap");
 const chatList = document.getElementById("chat-list");
 const chatUsers = document.getElementById("chat-users");
 const chatNameInput = document.getElementById("chat-name");
@@ -10,6 +14,9 @@ const user = getStoredUser();
 if (!user || !user.id) {
   window.location.href = "/static/profile.html";
 }
+
+let isChatListExpanded = false;
+let isCreateChatExpanded = false;
 
 async function loadUsers() {
   const users = await apiGet("/profile/users");
@@ -82,6 +89,18 @@ createChatBtn.addEventListener("click", () => {
 
 backBtn.addEventListener("click", () => {
   window.location.href = "/static/profile.html";
+});
+
+toggleChatListBtn.addEventListener("click", () => {
+  isChatListExpanded = !isChatListExpanded;
+  chatListWrap.classList.toggle("collapsed", !isChatListExpanded);
+  toggleChatListBtn.textContent = isChatListExpanded ? "Hide chats" : "Show chats";
+});
+
+toggleCreateChatBtn.addEventListener("click", () => {
+  isCreateChatExpanded = !isCreateChatExpanded;
+  createChatWrap.classList.toggle("collapsed", !isCreateChatExpanded);
+  toggleCreateChatBtn.textContent = isCreateChatExpanded ? "Close" : "Create chat";
 });
 
 Promise.all([loadUsers(), loadChats()]).catch((err) => {

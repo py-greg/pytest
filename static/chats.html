@@ -11,14 +11,20 @@
     <section class="card single-card">
       <h1>Choose Chat</h1>
       <p id="selected-user" class="muted">Step 2 of 3</p>
-      <ul id="chat-list" class="chat-list"></ul>
+      <button id="toggle-chat-list-btn" type="button" class="secondary">Show chats</button>
+      <div id="chat-list-wrap" class="chat-list-wrap collapsed">
+        <ul id="chat-list" class="chat-list"></ul>
+      </div>
 
-      <h2>Create Chat</h2>
-      <label for="chat-name">Name</label>
-      <input id="chat-name" type="text" placeholder="Chat name">
-      <label>Participants</label>
-      <div id="chat-users" class="checkbox-list"></div>
-      <button id="create-chat-btn" type="button">Create chat</button>
+      <button id="toggle-create-chat-btn" type="button" class="secondary">Create chat</button>
+      <div id="create-chat-wrap" class="chat-list-wrap collapsed">
+        <h2>Create Chat</h2>
+        <label for="chat-name">Name</label>
+        <input id="chat-name" type="text" placeholder="Chat name">
+        <label>Participants</label>
+        <div id="chat-users" class="checkbox-list"></div>
+        <button id="create-chat-btn" type="button">Create chat</button>
+      </div>
 
       <div class="inline-actions">
         <button id="back-btn" type="button" class="secondary">Back to profile</button>

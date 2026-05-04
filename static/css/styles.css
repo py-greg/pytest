@@ -99,6 +99,19 @@ h2 {
   gap: 6px;
 }
 
+.chat-list-wrap {
+  max-height: 280px;
+  overflow: auto;
+  transition: max-height 0.2s ease, opacity 0.2s ease;
+  opacity: 1;
+}
+
+.chat-list-wrap.collapsed {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+}
+
 .chat-list li {
   padding: 8px 10px;
   border: 1px solid #e5e7eb;
