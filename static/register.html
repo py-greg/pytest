@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Messenger - Register</title>
+  <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+  <main class="single-page">
+    <section class="card single-card">
+      <h1>Register User</h1>
+      <p class="muted">Create a new profile</p>
+
+      <label for="name">Name</label>
+      <input id="name" type="text" placeholder="John Doe">
+
+      <label for="age">Age</label>
+      <input id="age" type="number" min="1" placeholder="18">
+
+      <label for="email">Email</label>
+      <input id="email" type="email" placeholder="john@example.com">
+
+      <label for="phone">Phone</label>
+      <input id="phone" type="text" placeholder="+1 000 000 0000">
+
+      <label for="country">Country</label>
+      <input id="country" type="text" placeholder="USA">
+
+      <div class="inline-actions">
+        <button id="register-btn" type="button">Register</button>
+        <button id="back-btn" type="button" class="secondary">Back to profiles</button>
+      </div>
+
+      <div id="status" class="muted"></div>
+    </section>
+  </main>
+
+  <script src="/static/js/common.js"></script>
+  <script src="/static/js/register.js"></script>
+</body>
+</html>

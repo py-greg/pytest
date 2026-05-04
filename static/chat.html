@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Messenger - Chat</title>
+  <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+  <main class="chat-page">
+    <header class="chat-header">
+      <h1 id="chat-title">Chat</h1>
+      <p id="chat-meta" class="muted"></p>
+      <div class="inline-actions">
+        <button id="back-btn" type="button" class="secondary">Back to chats</button>
+      </div>
+    </header>
+
+    <section class="chat-content">
+      <section id="messages" class="messages"></section>
+
+      <aside class="chat-side">
+        <section class="card members-card">
+          <h2>Current Members</h2>
+          <ul id="current-members" class="member-list"></ul>
+        </section>
+
+        <section class="card members-card">
+          <h2>Add Members</h2>
+          <div id="member-list" class="checkbox-list"></div>
+          <div class="inline-actions">
+            <button id="add-members-btn" type="button">Add selected members</button>
+          </div>
+        </section>
+      </aside>
+    </section>
+
+    <form id="message-form" class="message-form">
+      <input id="message-input" type="text" placeholder="Type your message..." autocomplete="off">
+      <button type="submit">Send</button>
+    </form>
+
+    <div id="status" class="muted status-bar"></div>
+  </main>
+
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+  <script src="/static/js/common.js"></script>
+  <script src="/static/js/chat.js"></script>
+</body>
+</html>

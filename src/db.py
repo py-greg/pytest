@@ -1,18 +1,36 @@
 from typing import List, Optional
 import pymysql
+import threading
 from src.models import Message, Profile, Chat, ChatCreate
 
-conn = pymysql.connect(
-    host="84.38.180.130",
-    port=3306,
-    user="greg",
-    password="Wasthatthebiteof87",
-    database="greg_db",
-    cursorclass=pymysql.cursors.DictCursor
-)
+_DB_CONFIG = {
+    "host": "84.38.180.130",
+    "port": 3306,
+    "user": "greg",
+    "password": "Wasthatthebiteof87",
+    "database": "greg_db",
+    "cursorclass": pymysql.cursors.DictCursor,
+    "autocommit": True,
+}
+_thread_local = threading.local()
+
+
+def _get_conn():
+    conn = getattr(_thread_local, "conn", None)
+    if conn is None:
+        conn = pymysql.connect(**_DB_CONFIG)
+        _thread_local.conn = conn
+    else:
+        try:
+            conn.ping(reconnect=True)
+        except Exception:
+            conn = pymysql.connect(**_DB_CONFIG)
+            _thread_local.conn = conn
+    return conn
 
 
 def ensure_indexes() -> None:
+    conn = _get_conn()
     cursor = conn.cursor()
     statements = [
         "CREATE INDEX idx_messages_chat_timestamp ON messages(chat_id, timestamp)",
@@ -29,16 +47,19 @@ def ensure_indexes() -> None:
 
 #all functions are self-explanatory
 def get_users() -> List[Profile]:
+    conn = _get_conn()
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM users")
     return [Profile(**row) for row in cursor.fetchall()]
 
 def my_profile(user_id: int) -> Profile:
+    conn = _get_conn()
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM users WHERE id = %s", (user_id,))
     return Profile(**cursor.fetchall()[0])
 
 def get_chats(user_id: int) -> List[Chat]:
+    conn = _get_conn()
     cursor = conn.cursor()
     cursor.execute(
         "SELECT chats.id, chats.name FROM u2c INNER JOIN chats ON chats.id = u2c.cid WHERE u2c.uid = %s",
@@ -47,6 +68,7 @@ def get_chats(user_id: int) -> List[Chat]:
     return [Chat(**chat) for chat in cursor.fetchall()]
 
 def register_user(user: Profile) -> bool:
+    conn = _get_conn()
     cursor = conn.cursor()
     cursor.execute("INSERT INTO users (name, age, email, phone, country) VALUES (%s, %s, %s, %s, %s)",
         (user.name, user.age, user.email, user.phone, user.country,)
@@ -55,6 +77,7 @@ def register_user(user: Profile) -> bool:
     return True
 
 def create_chat(chat: ChatCreate) -> Chat:
+    conn = _get_conn()
     cursor = conn.cursor()
     cursor.execute("INSERT INTO chats (name) VALUES (%s)",
         (chat.name,)
@@ -69,7 +92,40 @@ def create_chat(chat: ChatCreate) -> Chat:
     conn.commit()
     return Chat(id=chat_id, name=chat.name)
 
+
+def get_chat_member_ids(chat_id: int) -> List[int]:
+    conn = _get_conn()
+    cursor = conn.cursor()
+    cursor.execute("SELECT uid FROM u2c WHERE cid = %s", (chat_id,))
+    return [row["uid"] for row in cursor.fetchall()]
+
+
+def get_chat_members(chat_id: int) -> List[Profile]:
+    conn = _get_conn()
+    cursor = conn.cursor()
+    cursor.execute(
+        "SELECT users.* FROM u2c INNER JOIN users ON users.id = u2c.uid WHERE u2c.cid = %s ORDER BY users.id",
+        (chat_id,),
+    )
+    return [Profile(**row) for row in cursor.fetchall()]
+
+
+def add_users_to_chat(chat_id: int, user_ids: List[int]) -> int:
+    conn = _get_conn()
+    cursor = conn.cursor()
+    existing_user_ids = set(get_chat_member_ids(chat_id))
+    inserted = 0
+    for user_id in user_ids:
+        if user_id in existing_user_ids:
+            continue
+        cursor.execute("INSERT INTO u2c (uid, cid) VALUES (%s, %s)", (user_id, chat_id))
+        existing_user_ids.add(user_id)
+        inserted += 1
+    conn.commit()
+    return inserted
+
 def get_messages(chat_id: int, limit: int = 100, before_id: Optional[int] = None) -> List[Message]:
+    conn = _get_conn()
     cursor = conn.cursor()
     query = (
         "SELECT messages.*, users.name AS sender_name "
@@ -109,6 +165,7 @@ def save_message(
     receiver_id: int = None,
     sender_name: str = "",
 ) -> Message:
+    conn = _get_conn()
     cursor = conn.cursor()
     cursor.execute(
         "INSERT INTO messages (chat_id, sender_id, receiver_id, message, timestamp) VALUES (%s, %s, %s, %s, NOW())",
@@ -131,11 +188,13 @@ def save_message(
     )
 
 def get_user_chat_ids(user_id: int) -> List[int]:
+    conn = _get_conn()
     cursor = conn.cursor()
     cursor.execute("SELECT cid FROM u2c WHERE uid = %s", (user_id,))
     return [row["cid"] for row in cursor.fetchall()]
 
 def user_in_chat(user_id: int, chat_id: int) -> bool:
+    conn = _get_conn()
     cursor = conn.cursor()
     cursor.execute(
         "SELECT 1 FROM u2c WHERE uid = %s AND cid = %s LIMIT 1",
@@ -145,6 +204,7 @@ def user_in_chat(user_id: int, chat_id: int) -> bool:
 
 
 def get_user_name(user_id: int) -> str:
+    conn = _get_conn()
     cursor = conn.cursor()
     cursor.execute("SELECT name FROM users WHERE id = %s", (user_id,))
     row = cursor.fetchone()

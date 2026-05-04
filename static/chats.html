@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Messenger - Choose Chat</title>
+  <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+  <main class="single-page">
+    <section class="card single-card">
+      <h1>Choose Chat</h1>
+      <p id="selected-user" class="muted">Step 2 of 3</p>
+      <ul id="chat-list" class="chat-list"></ul>
+
+      <h2>Create Chat</h2>
+      <label for="chat-name">Name</label>
+      <input id="chat-name" type="text" placeholder="Chat name">
+      <label>Participants</label>
+      <div id="chat-users" class="checkbox-list"></div>
+      <button id="create-chat-btn" type="button">Create chat</button>
+
+      <div class="inline-actions">
+        <button id="back-btn" type="button" class="secondary">Back to profile</button>
+      </div>
+      <div id="status" class="muted"></div>
+    </section>
+  </main>
+
+  <script src="/static/js/common.js"></script>
+  <script src="/static/js/chats.js"></script>
+</body>
+</html>
