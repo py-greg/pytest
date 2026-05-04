@@ -10,30 +10,33 @@ from src.api import chts, prof
 from src.db import get_user_chat_ids, user_in_chat, save_message, get_user_name, ensure_indexes
 
 sio = socketio.AsyncServer(async_mode="asgi", cors_allowed_origins="*")
-app = FastAPI()
-app.mount("/static", StaticFiles(directory="static"), name="static")
-app.include_router(prof, prefix="/profile")
-app.include_router(chts, prefix="/chats")
-socket_app = socketio.ASGIApp(sio, other_asgi_app=app)
+fastapi_app = FastAPI()
+fastapi_app.mount("/static", StaticFiles(directory="static"), name="static")
+fastapi_app.include_router(prof, prefix="/profile")
+fastapi_app.include_router(chts, prefix="/chats")
 
 
-@app.get("/")
+@fastapi_app.get("/")
 async def serve_index():
     return FileResponse("static/index.html")
 
 
-@app.get("/index.html")
+@fastapi_app.get("/index.html")
 async def serve_index_file():
     return FileResponse("static/index.html")
 
 
-app.add_middleware(
+fastapi_app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],        # Список разрешённых источников
     allow_credentials=True,       # Разрешить куки и заголовки авторизации
     allow_methods=["*"],          # Разрешить все HTTP методы (GET, POST, PUT, DELETE, OPTIONS...)
     allow_headers=["*"],          # Разрешить все заголовки
 )
+
+# Combined ASGI app for standard deployment entrypoint.
+app = socketio.ASGIApp(sio, other_asgi_app=fastapi_app)
+
 
 
 async def run_db(func, *args, **kwargs):
@@ -110,4 +113,4 @@ if __name__ == '__main__':
     import uvicorn
     ensure_indexes()
     #runs the server
-    uvicorn.run(socket_app, host="0.0.0.0", port=4444)
+    uvicorn.run(app, host="0.0.0.0", port=4444)
