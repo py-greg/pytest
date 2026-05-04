@@ -5,6 +5,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Messenger - Choose Chat</title>
   <link rel="stylesheet" href="/static/css/styles.css">
+  <script>
+    (function () {
+      var raw = localStorage.getItem("messenger_user");
+      if (!raw) {
+        window.location.replace("/static/profile.html");
+        return;
+      }
+      try {
+        var user = JSON.parse(raw);
+        if (!user || !user.id) {
+          window.location.replace("/static/profile.html");
+        }
+      } catch (e) {
+        window.location.replace("/static/profile.html");
+      }
+    })();
+  </script>
 </head>
 <body>
   <main class="single-page">

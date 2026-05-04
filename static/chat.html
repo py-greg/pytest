@@ -5,6 +5,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Messenger - Chat</title>
   <link rel="stylesheet" href="/static/css/styles.css">
+  <script>
+    (function () {
+      var raw = localStorage.getItem("messenger_user");
+      if (!raw) {
+        window.location.replace("/static/profile.html");
+        return;
+      }
+      try {
+        var user = JSON.parse(raw);
+        if (!user || !user.id) {
+          window.location.replace("/static/profile.html");
+        }
+      } catch (e) {
+        window.location.replace("/static/profile.html");
+      }
+    })();
+  </script>
 </head>
 <body>
   <main class="chat-page">
@@ -13,6 +30,7 @@
       <p id="chat-meta" class="muted"></p>
       <div class="inline-actions">
         <button id="back-btn" type="button" class="secondary">Back to chats</button>
+        <button id="delete-chat-btn" type="button" class="danger">Delete chat</button>
       </div>
     </header>
 

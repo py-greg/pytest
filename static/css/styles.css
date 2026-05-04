@@ -196,6 +196,14 @@ button.secondary:hover {
   background: #4b5563;
 }
 
+button.danger {
+  background: #dc2626;
+}
+
+button.danger:hover {
+  background: #b91c1c;
+}
+
 .status-bar {
   padding: 0 12px 12px;
 }

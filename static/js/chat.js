@@ -5,6 +5,7 @@ const messagesBox = document.getElementById("messages");
 const messageForm = document.getElementById("message-form");
 const messageInput = document.getElementById("message-input");
 const backBtn = document.getElementById("back-btn");
+const deleteChatBtn = document.getElementById("delete-chat-btn");
 const memberList = document.getElementById("member-list");
 const currentMembersList = document.getElementById("current-members");
 const addMembersBtn = document.getElementById("add-members-btn");
@@ -155,6 +156,24 @@ async function addMembers() {
   await loadMemberCandidates();
 }
 
+async function deleteCurrentChat() {
+  const isConfirmed = window.confirm("Delete this chat and all its messages?");
+  if (!isConfirmed) {
+    return;
+  }
+  const payload = {
+    chat_id: chat.id,
+    actor_user_id: user.id,
+  };
+  const result = await apiPost("/chats/delete_chat", payload);
+  if (socket) {
+    socket.disconnect();
+  }
+  clearStoredChat();
+  statusBox.textContent = `Deleted chat. Messages: ${result.messages_deleted}`;
+  window.location.href = "/static/chats.html";
+}
+
 backBtn.addEventListener("click", () => {
   window.location.href = "/static/chats.html";
 });
@@ -162,6 +181,11 @@ backBtn.addEventListener("click", () => {
 messageForm.addEventListener("submit", sendMessage);
 addMembersBtn.addEventListener("click", () => {
   addMembers().catch((err) => {
+    statusBox.textContent = err.message;
+  });
+});
+deleteChatBtn.addEventListener("click", () => {
+  deleteCurrentChat().catch((err) => {
     statusBox.textContent = err.message;
   });
 });

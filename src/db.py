@@ -124,6 +124,23 @@ def add_users_to_chat(chat_id: int, user_ids: List[int]) -> int:
     conn.commit()
     return inserted
 
+
+def delete_chat(chat_id: int) -> dict:
+    conn = _get_conn()
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM messages WHERE chat_id = %s", (chat_id,))
+    messages_deleted = cursor.rowcount
+    cursor.execute("DELETE FROM u2c WHERE cid = %s", (chat_id,))
+    connections_deleted = cursor.rowcount
+    cursor.execute("DELETE FROM chats WHERE id = %s", (chat_id,))
+    chats_deleted = cursor.rowcount
+    conn.commit()
+    return {
+        "messages_deleted": messages_deleted,
+        "connections_deleted": connections_deleted,
+        "chats_deleted": chats_deleted,
+    }
+
 def get_messages(chat_id: int, limit: int = 100, before_id: Optional[int] = None) -> List[Message]:
     conn = _get_conn()
     cursor = conn.cursor()

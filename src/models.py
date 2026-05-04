@@ -34,3 +34,8 @@ class ChatMembersUpdate(BaseModel):
     chat_id: int
     user_ids: List[int] = Field(default_factory=list)
     actor_user_id: int
+
+
+class ChatDelete(BaseModel):
+    chat_id: int
+    actor_user_id: int
