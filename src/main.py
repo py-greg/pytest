@@ -109,5 +109,5 @@ async def handle_chat_message(sid, data):
 if __name__ == '__main__':
     import uvicorn
     ensure_indexes()
-
+    #runs the server
     uvicorn.run(socket_app, host="0.0.0.0", port=4444)
