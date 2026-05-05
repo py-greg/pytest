@@ -244,3 +244,28 @@ button.danger:hover {
   border-radius: 8px;
   background: #fff;
 }
+
+.perm-editor {
+  margin-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.perm-toggle {
+  padding: 4px 8px;
+  background: #9ca3af;
+}
+
+.perm-toggle.active {
+  background: #2563eb;
+}
+
+.perm-save {
+  padding: 4px 8px;
+  background: #16a34a;
+}
+
+.perm-save:hover {
+  background: #15803d;
+}

@@ -223,6 +223,28 @@ def user_in_chat(user_id: int, chat_id: int) -> bool:
     return cursor.fetchone() is not None
 
 
+def get_user_permission_in_chat(user_id: int, chat_id: int) -> str:
+    conn = _get_conn()
+    cursor = conn.cursor()
+    cursor.execute(
+        "SELECT permission FROM u2c WHERE uid = %s AND cid = %s LIMIT 1",
+        (user_id, chat_id),
+    )
+    row = cursor.fetchone()
+    return (row or {}).get("permission", "") or ""
+
+
+def update_member_permissions(chat_id: int, user_id: int, permission: str) -> bool:
+    conn = _get_conn()
+    cursor = conn.cursor()
+    cursor.execute(
+        "UPDATE u2c SET permission = %s WHERE uid = %s AND cid = %s",
+        (permission, user_id, chat_id),
+    )
+    conn.commit()
+    return cursor.rowcount > 0
+
+
 def get_user_name(user_id: int) -> str:
     conn = _get_conn()
     cursor = conn.cursor()

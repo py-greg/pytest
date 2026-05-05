@@ -35,6 +35,59 @@ function parsePermissionSet(permissionString) {
   );
 }
 
+function normalizePermissionString(permissionString) {
+  const allowed = new Set(["read", "write", "admin"]);
+  const parts = Array.from(
+    new Set(
+      String(permissionString || "")
+        .split(";")
+        .map((item) => item.trim().toLowerCase())
+        .filter((item) => allowed.has(item))
+    )
+  );
+  return parts.join(";");
+}
+
+function createPermissionEditor(member) {
+  const editor = document.createElement("div");
+  editor.className = "perm-editor";
+  const permissionSet = parsePermissionSet(member.permission);
+  const toggles = ["read", "write", "admin"];
+
+  for (const permission of toggles) {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = `perm-toggle ${permissionSet.has(permission) ? "active" : ""}`;
+    btn.textContent = permission;
+    btn.dataset.permission = permission;
+    btn.addEventListener("click", () => {
+      btn.classList.toggle("active");
+    });
+    editor.appendChild(btn);
+  }
+
+  const saveBtn = document.createElement("button");
+  saveBtn.type = "button";
+  saveBtn.className = "perm-save";
+  saveBtn.textContent = "Save";
+  saveBtn.addEventListener("click", async () => {
+    const selected = Array.from(editor.querySelectorAll(".perm-toggle.active")).map((el) => el.dataset.permission);
+    const permission = normalizePermissionString(selected.join(";"));
+    const payload = {
+      chat_id: chat.id,
+      actor_user_id: user.id,
+      target_user_id: member.id,
+      permission,
+    };
+    await apiPost("/chats/update_member_permissions", payload);
+    statusBox.textContent = `Permissions updated for ${member.name}`;
+    await loadMemberCandidates();
+  });
+  editor.appendChild(saveBtn);
+
+  return editor;
+}
+
 function applyPermissionUI() {
   if (!canRead) {
     messagesBox.innerHTML = "";
@@ -120,7 +173,13 @@ async function loadMemberCandidates() {
   currentMembersList.innerHTML = "";
   for (const member of currentMembers) {
     const li = document.createElement("li");
-    li.textContent = `${member.id}: ${member.name} (${member.permission || "no permissions"})`;
+    const title = document.createElement("div");
+    title.textContent = `${member.id}: ${member.name} (${member.permission || "no permissions"})`;
+    li.appendChild(title);
+
+    if (canAdmin && member.id !== user.id) {
+      li.appendChild(createPermissionEditor(member));
+    }
     currentMembersList.appendChild(li);
   }
 

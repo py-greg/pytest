@@ -62,3 +62,10 @@ class ChatMembersUpdate(BaseModel):
 class ChatDelete(BaseModel):
     chat_id: int
     actor_user_id: int
+
+
+class ChatMemberPermissionUpdate(BaseModel):
+    chat_id: int
+    actor_user_id: int
+    target_user_id: int
+    permission: str
