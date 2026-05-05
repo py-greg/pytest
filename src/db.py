@@ -1,7 +1,7 @@
 from typing import List, Optional
 import pymysql
 import threading
-from src.models import Message, Profile, Chat, ChatCreate
+from src.models import Message, Profile, Chat, ChatCreate, ChatMember
 
 _DB_CONFIG = {
     "host": "84.38.180.130",
@@ -83,12 +83,12 @@ def create_chat(chat: ChatCreate) -> Chat:
         (chat.name,)
     )
     chat_id = cursor.lastrowid
-    user_ids = chat.user_ids
-    if not user_ids:
+    members_with_permissions = list(chat.user_ids)
+    if not members_with_permissions:
         cursor.execute("SELECT id FROM users")
-        user_ids = [user["id"] for user in cursor.fetchall()]
-    for user_id in user_ids:
-        cursor.execute("INSERT INTO u2c (uid, cid) VALUES (%s, %s)", (user_id, chat_id))
+        members_with_permissions = [(user["id"], "read;write") for user in cursor.fetchall()]
+    for user_id, permissions in members_with_permissions:
+        cursor.execute("INSERT INTO u2c (uid, cid, permission) VALUES (%s, %s, %s)", (user_id, chat_id, permissions))
     conn.commit()
     return Chat(id=chat_id, name=chat.name)
 
@@ -100,14 +100,14 @@ def get_chat_member_ids(chat_id: int) -> List[int]:
     return [row["uid"] for row in cursor.fetchall()]
 
 
-def get_chat_members(chat_id: int) -> List[Profile]:
+def get_chat_members(chat_id: int) -> List[ChatMember]:
     conn = _get_conn()
     cursor = conn.cursor()
     cursor.execute(
-        "SELECT users.* FROM u2c INNER JOIN users ON users.id = u2c.uid WHERE u2c.cid = %s ORDER BY users.id",
+        "SELECT users.id, users.name, u2c.permission FROM u2c INNER JOIN users ON users.id = u2c.uid WHERE u2c.cid = %s ORDER BY users.id",
         (chat_id,),
     )
-    return [Profile(**row) for row in cursor.fetchall()]
+    return [ChatMember(**row) for row in cursor.fetchall()]
 
 
 def add_users_to_chat(chat_id: int, user_ids: List[int]) -> int:
@@ -118,7 +118,10 @@ def add_users_to_chat(chat_id: int, user_ids: List[int]) -> int:
     for user_id in user_ids:
         if user_id in existing_user_ids:
             continue
-        cursor.execute("INSERT INTO u2c (uid, cid) VALUES (%s, %s)", (user_id, chat_id))
+        cursor.execute(
+            "INSERT INTO u2c (uid, cid, permission) VALUES (%s, %s, %s)",
+            (user_id, chat_id, "read;write"),
+        )
         existing_user_ids.add(user_id)
         inserted += 1
     conn.commit()
@@ -226,3 +229,9 @@ def get_user_name(user_id: int) -> str:
     cursor.execute("SELECT name FROM users WHERE id = %s", (user_id,))
     row = cursor.fetchone()
     return (row or {}).get("name", "")
+
+def get_user_permissions(user_id: int) -> List[str]:
+    conn = _get_conn()
+    cursor = conn.cursor()
+    cursor.execute("SELECT permission FROM u2c WHERE uid = %s", (user_id,))
+    return [row.get("permission", "") for row in cursor.fetchall()]

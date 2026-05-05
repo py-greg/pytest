@@ -9,6 +9,7 @@ const deleteChatBtn = document.getElementById("delete-chat-btn");
 const memberList = document.getElementById("member-list");
 const currentMembersList = document.getElementById("current-members");
 const addMembersBtn = document.getElementById("add-members-btn");
+const addMembersSection = addMembersBtn.closest("section");
 
 const user = getStoredUser();
 const chat = getStoredChat();
@@ -21,6 +22,44 @@ if (!chat || !chat.id) {
 }
 
 let socket = null;
+let canRead = false;
+let canWrite = false;
+let canAdmin = false;
+
+function parsePermissionSet(permissionString) {
+  return new Set(
+    String(permissionString || "")
+      .split(";")
+      .map((item) => item.trim().toLowerCase())
+      .filter(Boolean)
+  );
+}
+
+function applyPermissionUI() {
+  if (!canRead) {
+    messagesBox.innerHTML = "";
+    const noRead = document.createElement("article");
+    noRead.className = "message";
+    noRead.textContent = "You do not have read permission for this chat.";
+    messagesBox.appendChild(noRead);
+  }
+
+  messageInput.disabled = !canWrite;
+  const sendBtn = messageForm.querySelector('button[type="submit"]');
+  if (sendBtn) {
+    sendBtn.disabled = !canWrite;
+  }
+  if (!canWrite) {
+    messageInput.placeholder = "No write permission";
+  }
+
+  addMembersBtn.disabled = !canAdmin;
+  memberList.style.opacity = canAdmin ? "1" : "0.5";
+  if (addMembersSection) {
+    addMembersSection.style.display = canAdmin ? "" : "none";
+  }
+  deleteChatBtn.style.display = canAdmin ? "" : "none";
+}
 
 function renderMessage(message) {
   const box = document.createElement("article");
@@ -47,6 +86,9 @@ function scrollToBottom() {
 }
 
 async function loadMessages() {
+  if (!canRead) {
+    return;
+  }
   const list = await apiGet(`/chats/my_messages_from_chat/${chat.id}?limit=200`);
   messagesBox.innerHTML = "";
   for (const message of list) {
@@ -68,11 +110,17 @@ async function loadMemberCandidates() {
 
   const currentMembers = await apiGet(`/chats/members/${chat.id}?actor_user_id=${user.id}`);
   const currentMemberIds = new Set(currentMembers.map((item) => item.id));
+  const me = currentMembers.find((item) => item.id === user.id);
+  const permissionSet = parsePermissionSet(me ? me.permission : "");
+  canRead = permissionSet.has("read");
+  canWrite = permissionSet.has("write");
+  canAdmin = permissionSet.has("admin");
+  applyPermissionUI();
 
   currentMembersList.innerHTML = "";
   for (const member of currentMembers) {
     const li = document.createElement("li");
-    li.textContent = `${member.id}: ${member.name}`;
+    li.textContent = `${member.id}: ${member.name} (${member.permission || "no permissions"})`;
     currentMembersList.appendChild(li);
   }
 
@@ -129,6 +177,9 @@ function setupSocket() {
 
 function sendMessage(event) {
   event.preventDefault();
+  if (!canWrite) {
+    return;
+  }
   if (!socket) return;
   const text = messageInput.value.trim();
   if (!text) return;
@@ -141,6 +192,9 @@ function sendMessage(event) {
 }
 
 async function addMembers() {
+  if (!canAdmin) {
+    return;
+  }
   const selectedUserIds = Array.from(memberList.querySelectorAll('input[type="checkbox"]:checked')).map((el) => Number(el.value));
   if (!selectedUserIds.length) {
     alert("Select at least one member.");
@@ -157,6 +211,9 @@ async function addMembers() {
 }
 
 async function deleteCurrentChat() {
+  if (!canAdmin) {
+    return;
+  }
   const isConfirmed = window.confirm("Delete this chat and all its messages?");
   if (!isConfirmed) {
     return;
@@ -193,8 +250,16 @@ deleteChatBtn.addEventListener("click", () => {
 chatTitle.textContent = chat.name;
 chatMeta.textContent = `Step 3 of 3 | ${user.name} (${user.id})`;
 
-Promise.all([loadMessages(), loadMemberCandidates()])
-  .then(() => setupSocket())
+loadMemberCandidates()
+  .then(() => loadMessages())
+  .then(() => {
+    if (canRead || canWrite) {
+      setupSocket();
+    }
+    if (!canRead && !canWrite && !canAdmin) {
+      statusBox.textContent = "No permissions for this chat.";
+    }
+  })
   .catch((err) => {
     statusBox.textContent = err.message;
   });
