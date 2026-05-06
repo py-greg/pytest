@@ -177,7 +177,7 @@ async function loadMemberCandidates() {
     title.textContent = `${member.id}: ${member.name} (${member.permission || "no permissions"})`;
     li.appendChild(title);
 
-    if (canAdmin && member.id !== user.id) {
+    if (canAdmin) {
       li.appendChild(createPermissionEditor(member));
     }
     currentMembersList.appendChild(li);
