@@ -8,7 +8,7 @@ const chatUsers = document.getElementById("chat-users");
 const chatNameInput = document.getElementById("chat-name");
 const createChatBtn = document.getElementById("create-chat-btn");
 const profileBtn = document.getElementById("profile-btn");
-const backBtn = document.getElementById("back-btn");
+const logoutBtn = document.getElementById("logout-btn");
 const statusBox = document.getElementById("status");
 
 const user = getStoredUser();
@@ -96,7 +96,9 @@ profileBtn.addEventListener("click", () => {
   window.location.href = "/static/profile.html";
 });
 
-backBtn.addEventListener("click", () => {
+logoutBtn.addEventListener("click", () => {
+  clearStoredUser();
+  clearStoredChat();
   window.location.href = "/static/login.html";
 });
 

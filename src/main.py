@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import RedirectResponse
 from starlette.staticfiles import StaticFiles
 import socketio
 import asyncio
@@ -11,14 +11,17 @@ from src.db import get_user_chat_ids, user_in_chat, save_message, get_user_name,
 
 sio = socketio.AsyncServer(async_mode="asgi", cors_allowed_origins="*")
 fastapi_app = FastAPI()
-fastapi_app.mount("/static", StaticFiles(directory="static"), name="static")
 fastapi_app.include_router(prof, prefix="/profile")
 fastapi_app.include_router(chts, prefix="/chats")
 
 
 @fastapi_app.get("/")
-async def serve_index():
-    return FileResponse("static/index.html")
+@fastapi_app.get("/static")
+@fastapi_app.get("/static/")
+async def static_root():
+    return RedirectResponse(url="/static/login.html")
+
+fastapi_app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
 @fastapi_app.get("/index.html")

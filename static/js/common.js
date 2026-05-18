@@ -3,6 +3,20 @@ const STORAGE_KEYS = {
   chat: "messenger_chat",
 };
 
+const LOGIN_PAGE = "/static/login.html";
+const PUBLIC_PAGES = new Set([LOGIN_PAGE, "/static/register.html"]);
+
+function requireAuth() {
+  const path = window.location.pathname;
+  if (PUBLIC_PAGES.has(path)) {
+    return;
+  }
+  const user = getStoredUser();
+  if (!user || !user.id) {
+    window.location.replace(LOGIN_PAGE);
+  }
+}
+
 async function apiGet(path) {
   const res = await fetch(path);
   if (!res.ok) {
@@ -78,3 +92,5 @@ function getStoredChat() {
 function clearStoredChat() {
   localStorage.removeItem(STORAGE_KEYS.chat);
 }
+
+requireAuth();

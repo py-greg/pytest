@@ -5,23 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Messenger - My Profile</title>
   <link rel="stylesheet" href="/static/css/styles.css">
-  <script>
-    (function () {
-      var raw = localStorage.getItem("messenger_user");
-      if (!raw) {
-        window.location.replace("/static/login.html");
-        return;
-      }
-      try {
-        var user = JSON.parse(raw);
-        if (!user || !user.id) {
-          window.location.replace("/static/login.html");
-        }
-      } catch (e) {
-        window.location.replace("/static/login.html");
-      }
-    })();
-  </script>
 </head>
 <body>
   <main class="single-page">
