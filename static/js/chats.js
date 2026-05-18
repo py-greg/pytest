@@ -7,12 +7,13 @@ const chatList = document.getElementById("chat-list");
 const chatUsers = document.getElementById("chat-users");
 const chatNameInput = document.getElementById("chat-name");
 const createChatBtn = document.getElementById("create-chat-btn");
+const profileBtn = document.getElementById("profile-btn");
 const backBtn = document.getElementById("back-btn");
 const statusBox = document.getElementById("status");
 
 const user = getStoredUser();
 if (!user || !user.id) {
-  window.location.href = "/static/profile.html";
+  window.location.href = "/static/login.html";
 }
 
 let isChatListExpanded = false;
@@ -76,7 +77,11 @@ async function createChat() {
   }
   const selectedUsers = Array.from(chatUsers.querySelectorAll('input[type="checkbox"]:checked')).map((el) => Number(el.value));
   const userIds = Array.from(new Set([user.id, ...selectedUsers].filter(Boolean)));
-  await apiPost("/chats/create_chat", { name, user_ids: userIds });
+  await apiPost("/chats/create_chat", {
+    name,
+    creator_user_id: user.id,
+    user_ids: userIds,
+  });
   chatNameInput.value = "";
   await loadChats();
 }
@@ -87,8 +92,12 @@ createChatBtn.addEventListener("click", () => {
   });
 });
 
-backBtn.addEventListener("click", () => {
+profileBtn.addEventListener("click", () => {
   window.location.href = "/static/profile.html";
+});
+
+backBtn.addEventListener("click", () => {
+  window.location.href = "/static/login.html";
 });
 
 toggleChatListBtn.addEventListener("click", () => {

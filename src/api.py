@@ -4,8 +4,35 @@ from typing import Optional
 
 chts = APIRouter()
 prof = APIRouter()
-from src.models import Profile, Message, ChatCreate, Chat, ChatMembersUpdate, ChatDelete, ChatMemberPermissionUpdate
-from src.db import get_users, my_profile, get_chats, register_user, create_chat, get_messages, add_users_to_chat, user_in_chat, get_chat_members, delete_chat, get_user_permissions, get_user_permission_in_chat, update_member_permissions
+from src.models import (
+    Profile,
+    Message,
+    ChatCreate,
+    Chat,
+    ChatMembersUpdate,
+    ChatDelete,
+    ChatMemberPermissionUpdate,
+    LoginRequest,
+    RegisterRequest,
+    ProfileUpdate,
+)
+from src.db import (
+    get_users,
+    my_profile,
+    get_chats,
+    register_user,
+    create_chat,
+    get_messages,
+    add_users_to_chat,
+    user_in_chat,
+    get_chat_members,
+    delete_chat,
+    get_user_permissions,
+    get_user_permission_in_chat,
+    update_member_permissions,
+    login,
+    update_profile,
+)
 
 #all functions are self-explanatory
 @prof.get("/users")
@@ -16,14 +43,29 @@ async def getusers():
 async def myprofile(user_id: int):
     return my_profile(user_id)
 
+
+@prof.put("/profile")
+async def updateprofile(user: ProfileUpdate):
+    profile = update_profile(user)
+    if profile is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    return profile
+
 @chts.get("/my_chats")
 async def mychats(user_id: int):
     return get_chats(user_id)
 
 @prof.post("/register")
-async def register(user: Profile):
-    register_user(user)
-    return "User registered successfully!"
+async def register(user: RegisterRequest):
+    return register_user(user)
+
+
+@prof.post("/login")
+async def login_user(request: LoginRequest):
+    profile = login(request)
+    if profile is None:
+        raise HTTPException(status_code=401, detail="Invalid user ID or password")
+    return profile
 
 @chts.post("/create_chat")
 async def createchat(chat: ChatCreate):

@@ -1,7 +1,9 @@
 from typing import List, Optional
+import hashlib
+import secrets
 import pymysql
 import threading
-from src.models import Message, Profile, Chat, ChatCreate, ChatMember
+from src.models import Message, Profile, Chat, ChatCreate, ChatMember, LoginRequest, RegisterRequest, ProfileUpdate
 
 _DB_CONFIG = {
     "host": "84.38.180.130",
@@ -13,6 +15,7 @@ _DB_CONFIG = {
     "autocommit": True,
 }
 _thread_local = threading.local()
+
 
 
 def _get_conn():
@@ -58,6 +61,26 @@ def my_profile(user_id: int) -> Profile:
     cursor.execute("SELECT * FROM users WHERE id = %s", (user_id,))
     return Profile(**cursor.fetchall()[0])
 
+
+def update_profile(user: ProfileUpdate) -> Optional[Profile]:
+    conn = _get_conn()
+    cursor = conn.cursor()
+    if user.new_password:
+        password_hash = _hash_password(user.new_password)
+        cursor.execute(
+            "UPDATE users SET name = %s, age = %s, email = %s, phone = %s, country = %s, thePassword = %s WHERE id = %s",
+            (user.name, user.age, user.email, user.phone, user.country, password_hash, user.id),
+        )
+    else:
+        cursor.execute(
+            "UPDATE users SET name = %s, age = %s, email = %s, phone = %s, country = %s WHERE id = %s",
+            (user.name, user.age, user.email, user.phone, user.country, user.id),
+        )
+    conn.commit()
+    if cursor.rowcount == 0:
+        return None
+    return my_profile(user.id)
+
 def get_chats(user_id: int) -> List[Chat]:
     conn = _get_conn()
     cursor = conn.cursor()
@@ -67,28 +90,68 @@ def get_chats(user_id: int) -> List[Chat]:
     )
     return [Chat(**chat) for chat in cursor.fetchall()]
 
-def register_user(user: Profile) -> bool:
+def _hash_password(password: str) -> str:
+    salt = secrets.token_hex(16)
+    digest = hashlib.pbkdf2_hmac(
+        "sha256", password.encode("utf-8"), salt.encode("utf-8"), 100_000
+    )
+    return f"{salt}${digest.hex()}"
+
+
+def _verify_password(password: str, stored: str) -> bool:
+    if not stored:
+        return False
+    if "$" in stored:
+        try:
+            salt, expected_hex = stored.split("$", 1)
+            digest = hashlib.pbkdf2_hmac(
+                "sha256", password.encode("utf-8"), salt.encode("utf-8"), 100_000
+            )
+            return secrets.compare_digest(digest.hex(), expected_hex)
+        except ValueError:
+            return False
+    return secrets.compare_digest(password, stored)
+
+
+def register_user(user: RegisterRequest) -> Profile:
     conn = _get_conn()
     cursor = conn.cursor()
-    cursor.execute("INSERT INTO users (name, age, email, phone, country) VALUES (%s, %s, %s, %s, %s)",
-        (user.name, user.age, user.email, user.phone, user.country,)
+    password_hash = _hash_password(user.password)
+    cursor.execute(
+        "INSERT INTO users (name, age, email, phone, country, thePassword) VALUES (%s, %s, %s, %s, %s, %s)",
+        (user.name, user.age, user.email, user.phone, user.country, password_hash),
     )
+    user_id = cursor.lastrowid
     conn.commit()
-    return True
+    return Profile(
+        id=user_id,
+        name=user.name,
+        age=user.age,
+        email=user.email,
+        phone=user.phone,
+        country=user.country,
+    )
 
 def create_chat(chat: ChatCreate) -> Chat:
+    CREATOR_PERMISSIONS = "read;write;admin"
+    DEFAULT_MEMBER_PERMISSIONS = "read;write"
     conn = _get_conn()
     cursor = conn.cursor()
-    cursor.execute("INSERT INTO chats (name) VALUES (%s)",
-        (chat.name,)
-    )
+    cursor.execute("INSERT INTO chats (name) VALUES (%s)", (chat.name,))
     chat_id = cursor.lastrowid
-    members_with_permissions = list(chat.user_ids)
-    if not members_with_permissions:
-        cursor.execute("SELECT id FROM users")
-        members_with_permissions = [(user["id"], "read;write") for user in cursor.fetchall()]
-    for user_id, permissions in members_with_permissions:
-        cursor.execute("INSERT INTO u2c (uid, cid, permission) VALUES (%s, %s, %s)", (user_id, chat_id, permissions))
+
+    member_ids = list(dict.fromkeys([chat.creator_user_id, *chat.user_ids]))
+    for user_id in member_ids:
+        permissions = (
+            CREATOR_PERMISSIONS
+            if user_id == chat.creator_user_id
+            else DEFAULT_MEMBER_PERMISSIONS
+        )
+        cursor.execute(
+            "INSERT INTO u2c (uid, cid, permission) VALUES (%s, %s, %s)",
+            (user_id, chat_id, permissions),
+        )
+
     conn.commit()
     return Chat(id=chat_id, name=chat.name)
 
@@ -257,3 +320,25 @@ def get_user_permissions(user_id: int) -> List[str]:
     cursor = conn.cursor()
     cursor.execute("SELECT permission FROM u2c WHERE uid = %s", (user_id,))
     return [row.get("permission", "") for row in cursor.fetchall()]
+
+def login(request: LoginRequest) -> Optional[Profile]:
+    conn = _get_conn()
+    cursor = conn.cursor()
+    cursor.execute(
+        "SELECT id, name, age, email, phone, country, thePassword FROM users WHERE id = %s",
+        (request.user_id,),
+    )
+    row = cursor.fetchone()
+    if not row:
+        return None
+    stored = row.get("thePassword") or ""
+    if not _verify_password(request.input_password, stored):
+        return None
+    return Profile(
+        id=row["id"],
+        name=row["name"],
+        age=row["age"],
+        email=row["email"],
+        phone=row["phone"],
+        country=row["country"],
+    )

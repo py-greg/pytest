@@ -11,6 +11,27 @@ async function apiGet(path) {
   return res.json();
 }
 
+async function apiPut(path, payload) {
+  const res = await fetch(path, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    let detail = `PUT ${path} failed: ${res.status}`;
+    try {
+      const body = await res.json();
+      if (body && body.detail) {
+        detail = typeof body.detail === "string" ? body.detail : JSON.stringify(body.detail);
+      }
+    } catch (_) {
+      // ignore JSON parse errors
+    }
+    throw new Error(detail);
+  }
+  return res.json();
+}
+
 async function apiPost(path, payload) {
   const res = await fetch(path, {
     method: "POST",
@@ -18,7 +39,16 @@ async function apiPost(path, payload) {
     body: JSON.stringify(payload),
   });
   if (!res.ok) {
-    throw new Error(`POST ${path} failed: ${res.status}`);
+    let detail = `POST ${path} failed: ${res.status}`;
+    try {
+      const body = await res.json();
+      if (body && body.detail) {
+        detail = typeof body.detail === "string" ? body.detail : JSON.stringify(body.detail);
+      }
+    } catch (_) {
+      // ignore JSON parse errors
+    }
+    throw new Error(detail);
   }
   return res.json();
 }

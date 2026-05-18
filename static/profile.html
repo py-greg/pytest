@@ -3,18 +3,58 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Messenger - Choose Profile</title>
+  <title>Messenger - My Profile</title>
   <link rel="stylesheet" href="/static/css/styles.css">
+  <script>
+    (function () {
+      var raw = localStorage.getItem("messenger_user");
+      if (!raw) {
+        window.location.replace("/static/login.html");
+        return;
+      }
+      try {
+        var user = JSON.parse(raw);
+        if (!user || !user.id) {
+          window.location.replace("/static/login.html");
+        }
+      } catch (e) {
+        window.location.replace("/static/login.html");
+      }
+    })();
+  </script>
 </head>
 <body>
   <main class="single-page">
     <section class="card single-card">
-      <h1>Choose Profile</h1>
-      <p class="muted">Step 1 of 3</p>
-      <label for="user-select">User</label>
-      <select id="user-select"></select>
-      <button id="continue-btn" type="button">Continue to chats</button>
-      <button id="register-btn" type="button" class="secondary">Register new user</button>
+      <h1>My Profile</h1>
+      <p class="muted">View and edit your account</p>
+
+      <label for="user-id">User ID</label>
+      <input id="user-id" type="text" readonly>
+
+      <label for="name">Name</label>
+      <input id="name" type="text" placeholder="John Doe">
+
+      <label for="age">Age</label>
+      <input id="age" type="number" min="1" placeholder="18">
+
+      <label for="email">Email</label>
+      <input id="email" type="email" placeholder="john@example.com">
+
+      <label for="phone">Phone</label>
+      <input id="phone" type="text" placeholder="+1 000 000 0000">
+
+      <label for="country">Country</label>
+      <input id="country" type="text" placeholder="USA">
+
+      <label for="new-password">New password (optional)</label>
+      <input id="new-password" type="password" placeholder="Leave blank to keep current" autocomplete="new-password">
+
+      <div class="inline-actions">
+        <button id="save-btn" type="button">Save changes</button>
+        <button id="back-btn" type="button" class="secondary">Back to chats</button>
+      </div>
+
       <div id="status" class="muted"></div>
     </section>
   </main>

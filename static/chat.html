@@ -9,16 +9,16 @@
     (function () {
       var raw = localStorage.getItem("messenger_user");
       if (!raw) {
-        window.location.replace("/static/profile.html");
+        window.location.replace("/static/login.html");
         return;
       }
       try {
         var user = JSON.parse(raw);
         if (!user || !user.id) {
-          window.location.replace("/static/profile.html");
+          window.location.replace("/static/login.html");
         }
       } catch (e) {
-        window.location.replace("/static/profile.html");
+        window.location.replace("/static/login.html");
       }
     })();
   </script>

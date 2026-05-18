@@ -15,7 +15,7 @@ const user = getStoredUser();
 const chat = getStoredChat();
 
 if (!user || !user.id) {
-  window.location.href = "/static/profile.html";
+  window.location.href = "/static/login.html";
 }
 if (!chat || !chat.id) {
   window.location.href = "/static/chats.html";

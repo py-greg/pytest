@@ -1,4 +1,4 @@
-from typing import List, Optional, Tuple
+from typing import List, Optional
 from pydantic import BaseModel, Field, field_validator
 
 #profile model
@@ -34,21 +34,8 @@ class Chat(BaseModel):
 #chat create model
 class ChatCreate(BaseModel):
     name: str
-    user_ids: List[Tuple[int, str]] = Field(default_factory=list)
-
-    @field_validator("user_ids")
-    @classmethod
-    def validate_permissions(cls, value):
-        for user_id, permissions in value:
-            if not permissions:
-                raise ValueError("permissions string cannot be empty")
-            # optional: ensure semicolon-separated tokens are non-empty
-            parts = permissions.split(";")
-            if any(not p.strip() for p in parts):
-                raise ValueError(
-                    f"invalid permissions format for user_id={user_id}; use 'perm1;perm2'"
-                )
-        return value
+    creator_user_id: int
+    user_ids: List[int] = Field(default_factory=list)
 
 
 #chat members update model
@@ -63,9 +50,41 @@ class ChatDelete(BaseModel):
     chat_id: int
     actor_user_id: int
 
-
+#chat members perms update model
 class ChatMemberPermissionUpdate(BaseModel):
     chat_id: int
     actor_user_id: int
     target_user_id: int
     permission: str
+
+class RegisterRequest(BaseModel):
+    name: str
+    age: int
+    email: str
+    phone: str
+    country: str
+    password: str = Field(min_length=4)
+
+
+class LoginRequest(BaseModel):
+    user_id: int
+    input_password: str = Field(min_length=1)
+
+
+class ProfileUpdate(BaseModel):
+    id: int
+    name: str
+    age: int
+    email: str
+    phone: str
+    country: str
+    new_password: Optional[str] = None
+
+    @field_validator("new_password")
+    @classmethod
+    def validate_new_password(cls, value: Optional[str]) -> Optional[str]:
+        if value is None or value == "":
+            return None
+        if len(value) < 4:
+            raise ValueError("Password must be at least 4 characters")
+        return value

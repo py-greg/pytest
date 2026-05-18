@@ -9,16 +9,16 @@
     (function () {
       var raw = localStorage.getItem("messenger_user");
       if (!raw) {
-        window.location.replace("/static/profile.html");
+        window.location.replace("/static/login.html");
         return;
       }
       try {
         var user = JSON.parse(raw);
         if (!user || !user.id) {
-          window.location.replace("/static/profile.html");
+          window.location.replace("/static/login.html");
         }
       } catch (e) {
-        window.location.replace("/static/profile.html");
+        window.location.replace("/static/login.html");
       }
     })();
   </script>
@@ -44,7 +44,8 @@
       </div>
 
       <div class="inline-actions">
-        <button id="back-btn" type="button" class="secondary">Back to profile</button>
+        <button id="profile-btn" type="button">My profile</button>
+        <button id="back-btn" type="button" class="secondary">Back to login</button>
       </div>
       <div id="status" class="muted"></div>
     </section>
