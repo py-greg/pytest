@@ -74,9 +74,12 @@ h2 {
 
 .message {
   max-width: 75%;
+  min-width: 0;
   padding: 10px;
   border-radius: 10px;
   background: #e5e7eb;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .message.mine {
@@ -88,6 +91,15 @@ h2 {
   font-size: 12px;
   color: #4b5563;
   margin-bottom: 4px;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.message-text {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  line-height: 1.4;
 }
 
 .chat-list {
@@ -174,6 +186,22 @@ button:hover {
   display: grid;
   grid-template-columns: 1fr 320px;
   min-height: 0;
+}
+
+.chat-content.members-collapsed {
+  grid-template-columns: 1fr;
+}
+
+.member-panel-wrap {
+  min-height: 0;
+  overflow: hidden;
+  transition: opacity 0.2s ease;
+  opacity: 1;
+}
+
+.member-panel-wrap.collapsed {
+  display: none;
+  opacity: 0;
 }
 
 .chat-side {

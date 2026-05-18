@@ -12,14 +12,16 @@
       <h1 id="chat-title">Chat</h1>
       <p id="chat-meta" class="muted"></p>
       <div class="inline-actions">
+        <button id="toggle-member-list-btn" type="button" class="secondary">Show member list</button>
         <button id="back-btn" type="button" class="secondary">Back to chats</button>
         <button id="delete-chat-btn" type="button" class="danger">Delete chat</button>
       </div>
     </header>
 
-    <section class="chat-content">
+    <section id="chat-content" class="chat-content members-collapsed">
       <section id="messages" class="messages"></section>
 
+      <div id="member-list-wrap" class="member-panel-wrap collapsed">
       <aside class="chat-side">
         <section class="card members-card">
           <h2>Current Members</h2>
@@ -34,6 +36,7 @@
           </div>
         </section>
       </aside>
+      </div>
     </section>
 
     <form id="message-form" class="message-form">

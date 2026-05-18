@@ -4,6 +4,9 @@ const statusBox = document.getElementById("status");
 const messagesBox = document.getElementById("messages");
 const messageForm = document.getElementById("message-form");
 const messageInput = document.getElementById("message-input");
+const toggleMemberListBtn = document.getElementById("toggle-member-list-btn");
+const memberListWrap = document.getElementById("member-list-wrap");
+const chatContent = document.getElementById("chat-content");
 const backBtn = document.getElementById("back-btn");
 const deleteChatBtn = document.getElementById("delete-chat-btn");
 const memberList = document.getElementById("member-list");
@@ -25,6 +28,7 @@ let socket = null;
 let canRead = false;
 let canWrite = false;
 let canAdmin = false;
+let isMemberListExpanded = false;
 
 function parsePermissionSet(permissionString) {
   return new Set(
@@ -128,6 +132,7 @@ function renderMessage(message) {
   box.appendChild(meta);
 
   const text = document.createElement("div");
+  text.className = "message-text";
   text.textContent = message.text || "";
   box.appendChild(text);
 
@@ -289,6 +294,13 @@ async function deleteCurrentChat() {
   statusBox.textContent = `Deleted chat. Messages: ${result.messages_deleted}`;
   window.location.href = "/static/chats.html";
 }
+
+toggleMemberListBtn.addEventListener("click", () => {
+  isMemberListExpanded = !isMemberListExpanded;
+  memberListWrap.classList.toggle("collapsed", !isMemberListExpanded);
+  chatContent.classList.toggle("members-collapsed", !isMemberListExpanded);
+  toggleMemberListBtn.textContent = isMemberListExpanded ? "Hide member list" : "Show member list";
+});
 
 backBtn.addEventListener("click", () => {
   window.location.href = "/static/chats.html";
